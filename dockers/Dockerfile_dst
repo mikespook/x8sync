@@ -1,0 +1,23 @@
+FROM alpine
+
+RUN apk update
+RUN apk add --no-cache rsync
+RUN apk add --no-cache openssh-client
+RUN apk add --no-cache pv
+
+RUN adduser -u 1000 -G users -D -h /home user
+RUN mkdir /home/dst && chown user:users /home/dst
+
+USER user:users
+
+WORKDIR /home
+VOLUME /home/src
+VOLUME /home/dst
+
+COPY entrypoint_dst.sh /usr/local/bin/entrypoint.sh
+
+#ENV SSH_HOST=127.0.0.1
+ENV SSH_PORT=2222
+ENV SSH_USER=user
+
+ENTRYPOINT ["entrypoint.sh"]

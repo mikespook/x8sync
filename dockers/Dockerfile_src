@@ -1,0 +1,6 @@
+# Use the official linuxserver/openssh-server as base image
+FROM linuxserver/openssh-server
+
+# Install rsync
+RUN apk update
+RUN apk add --no-cache rsync
