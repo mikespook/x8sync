@@ -7,7 +7,7 @@ import (
 func TestGetCotexts(t *testing.T) {
 	home, kubeconfig := mustInit()
 
-	t.Run("getting a list of contexts", func(t *testing.T) {
+	t.Run("getting list of contexts", func(t *testing.T) {
 		contexts, err := GetContexts(kubeconfig)
 		if err != nil {
 			t.Fatal(err)
