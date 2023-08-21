@@ -1,55 +1,12 @@
-package context
+package k8s
 
 import (
 	"os"
 	"path/filepath"
-	"testing"
 
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
-
-func TestBuildRESTConfig(t *testing.T) {
-	home := mustInitTestHome()
-	kubeconfig := filepath.Join(home, ".kube", "config")
-	saveTestConfig(kubeconfig, createValidTestConfig)
-
-	t.Run("creating api.Config from the current context", func(t *testing.T) {
-		config, err := BuildRESTConfig("", kubeconfig)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if config.Host != FooServer {
-			t.Fatalf("%s expected, got %s", FooServer, config.Host)
-		}
-		t.Log(config.String())
-	})
-
-	t.Run("creating api.Config from the specific context", func(t *testing.T) {
-		config, err := BuildRESTConfig("bar", kubeconfig)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if config.Host != BarServer {
-			t.Fatalf("%s expected, got %s", BarServer, config.Host)
-		}
-		t.Log(config.String())
-	})
-
-	t.Run("creating api.Config from a non-existent context", func(t *testing.T) {
-		config, err := BuildRESTConfig("non-existent", kubeconfig)
-		if err == nil {
-			t.Fatalf("an error expected")
-		}
-		if config != nil {
-			t.Fatalf("nil value expected")
-		}
-	})
-
-	t.Cleanup(func() {
-		mustCleanup(home)
-	})
-}
 
 const (
 	FooServer = "https://foo:8080"
@@ -57,6 +14,13 @@ const (
 	BarServer = "https://bar:8080"
 	BarToken  = "bar=token"
 )
+
+func mustInit() (home, kubeconfig string) {
+	home = mustInitTestHome()
+	kubeconfig = filepath.Join(home, ".kube", "config")
+	saveTestConfig(kubeconfig, createValidTestConfig)
+	return
+}
 
 func createValidTestConfig() *api.Config {
 	config := api.NewConfig()
