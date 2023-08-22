@@ -1,0 +1,50 @@
+@startuml
+
+title Duplicating PVC
+
+start
+partition "src PVC" {
+    if (src PVC exists?) then (no)
+        #pink:panic: src PVC is non-exsitent;
+        stop
+    else (yes)
+    endif
+}
+
+partition "tmp snapshot" {
+    if (has force?) then (yes)
+        if (tmp snapshot exists?) then (yes)
+            #Yellow:delete tmp snapshot;            
+        endif        
+        :create tmp snapshot\nfrom src PVC;     
+    else (no)
+        if (tmp snapshot exists?) then (no)        
+            :create tmp snapshot\nfrom src PVC;
+        endif
+    endif    
+    while (tmp snapshot ready?) is (no)
+        :sleep 1sec;
+    endwhile (yes)
+    #GreenYellow:tmp snapshot ready;
+}
+
+partition "tmp PVC" {
+    if (has force?) then (yes)
+        if (tmp PVC exists?) then (yes)
+            #Yellow:delete tmp PVC;            
+        endif        
+        :create tmp PVC\nfrom tmp snapshot;
+    else (no)
+        if (tmp PVC exists?) then (no)        
+            :create tmp PVC\nfrom tmp snapshot;
+        endif
+    endif
+    while (tmp PVC ready?) is (no)
+        :sleep 1sec;
+    endwhile (yes)
+    #GreenYellow:tmp PVC ready;
+}
+
+end
+
+@enduml
