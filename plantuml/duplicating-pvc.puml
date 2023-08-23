@@ -1,6 +1,6 @@
 @startuml
 
-title Duplicating PVC
+title Prepare PVC
 
 start
 partition "src PVC" {
@@ -11,6 +11,7 @@ partition "src PVC" {
     endif
 }
 
+if (support snapshot?) then (yes)
 partition "tmp snapshot" {
     if (has force?) then (yes)
         if (tmp snapshot exists?) then (yes)
@@ -44,6 +45,30 @@ partition "tmp PVC" {
     endwhile (yes)
     #GreenYellow:tmp PVC ready;
 }
+#Yellow:delete tmp snapshot;
+#LightBlue:add tmp PVC\nto change list;
+else (no)
+partition "pod" {
+    if (has force?) then (yes)
+        if (src PVC bonded?) then (yes)
+            :find bonded pod;            
+            :set replica=0;
+            #LightBlue:add original replica\nto change list;
+        endif
+    else (no)
+        if (src PVC bonded?) then (yes)
+            #pink:panic: src PVC is bonded;
+            stop
+        endif
+    endif
+    while (src PVC unbonded?) is (no)
+        :sleep 1sec;
+    endwhile (yes)
+    #GreenYellow:src PVC ready;
+}
+endif
+
+
 
 end
 
