@@ -7,6 +7,7 @@ import (
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery"
 )
 
 // HasVolumeSnapshot checks if a VolumeSnapshot with the given name exists in the specified namespace.
@@ -43,4 +44,19 @@ func CreateVolumeSnapshot(clientset snapshotclientset.Interface, namespace, snap
 		return nil, err
 	}
 	return result, nil
+}
+
+// IsSupportingVolumeSnapshot checks if the Kubernetes cluster supports VolumeSnapshot functionality.
+func IsSupportingVolumeSnapshot(clientset discovery.DiscoveryInterface) (bool, error) {
+	apiResourceList, err := clientset.ServerResourcesForGroupVersion("snapshot.storage.k8s.io/v1")
+	if err != nil {
+		return false, err
+	}
+
+	for _, res := range apiResourceList.APIResources {
+		if res.Kind == "VolumeSnapshot" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
