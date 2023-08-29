@@ -3,19 +3,20 @@ package k8s
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/api/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
-// HasPVC checks if a PersistentVolumeClaims with the given name exists in the specified namespace.
-func HasPVC(clientset kubernetes.Interface, namespace, name string) (bool, error) {
-	_, err := clientset.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-	if err == nil {
-		return true, nil
+// GetPVC retrieves a PersistentVolumeClaim (PVC) by its name and namespace using the provided Kubernetes clientset.
+func GetPVC(clientset kubernetes.Interface, namespace, name string) (*corev1.PersistentVolumeClaim, error) {
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
 	}
-	if errors.IsNotFound(err) {
-		return false, nil
-	}
-	return false, err
+	return pvc, err
+}
+
+func IsPVCBound(pvc *corev1.PersistentVolumeClaim) bool {
+	return pvc.Status.Phase == corev1.ClaimBound
 }
